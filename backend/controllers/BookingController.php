@@ -24,8 +24,13 @@ class BookingController {
             $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($booking) {
-                $qrData = urlencode("BOOKING-ID:" . $booking['id'] . "|USER:" . $booking['customer_name'] . "|EVENT:" . $booking['event_title']);
-                $booking['qr_code_url'] = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . $qrData;
+                // Teks mesra pembaca QR Camera
+                $cleanText = "TIKET TAHNIYAH!\nID Tempahan: #" . $booking['id'] . "\nPelanggan: " . $booking['customer_name'] . "\nAcara: " . $booking['event_title'] . "\nTarikh: " . $booking['event_date'] . "\nJumlah Tiket: " . $booking['tickets_qty'] . " keping";
+
+                // Encode URL dengan betul
+                $qrData = rawurlencode($cleanText);
+                $booking['qr_code_url'] = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" . $qrData;
+
                 echo json_encode(["status" => "success", "data" => $booking]);
             } else {
                 http_response_code(404);
@@ -79,7 +84,7 @@ class BookingController {
             }
 
             // Simpan tempahan
-            $stmt = $this->db->prepare("INSERT INTO bookings (user_id, event_id, tickets_qty, total_price) VALUES (?, ?, ?, ?)");
+            $stmt = $this->db->prepare("INSERT INTO bookings (user_id, event_id, tickets_qty, total_price, booking_status) VALUES (?, ?, ?, ?, 'Confirmed')");
             $stmt->execute([$user_id, $event_id, $tickets_qty, $total_price]);
             $bookingId = $this->db->lastInsertId();
 
