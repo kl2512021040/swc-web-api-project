@@ -1,5 +1,14 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
+// Fungsi Log Out
+function logout() {
+    if (confirm('Adakah anda pasti ingin log keluar?')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '../../index.html';
+    }
+}
+
 async function loadUsers() {
     const userTableBody = document.getElementById('userTableBody');
     if (!userTableBody) return;
