@@ -1,82 +1,46 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-// Kendalikan Log Masuk (Login)
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const body = {
-            email: document.getElementById('email').value.trim(),
-            password: document.getElementById('password').value.trim()
-        };
-
-        try {
-            const res = await fetch(`${API_BASE}/users?action=login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-
-            const json = await res.json();
-            if (res.ok && json.status === 'success') {
-                localStorage.setItem('user', JSON.stringify(json.user));
-                localStorage.setItem('token', json.token);
-                alert('Log masuk berjaya!');
-                window.location.href = 'my-bookings.html';
-            } else {
-                alert(json.message || 'Log masuk gagal.');
-            }
-        } catch (err) {
-            console.error('Error logging in:', err);
-            alert('Ralat sambungan ke pelayan.');
+// 1. Pengurusan Sesi & Sapaan Pengguna (Greeting Navbar)
+function initSession() {
+    const userData = localStorage.getItem('user');
+    const greetingEl = document.getElementById('userGreeting');
+    
+    if (userData) {
+        const user = JSON.parse(userData);
+        if (greetingEl) {
+            greetingEl.textContent = `Selamat datang, ${user.name}!`;
         }
-    });
+        return user;
+    } else {
+        // Jika tiada sesi login, kembalikan ke homepage utama
+        window.location.href = '../../index.html';
+        return null;
+    }
 }
 
-// Kendalikan Pendaftaran Akaun Baharu (Register)
-const registerForm = document.getElementById('registerForm');
-if (registerForm) {
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const body = {
-            name: document.getElementById('regName').value.trim(),
-            email: document.getElementById('regEmail').value.trim(),
-            password: document.getElementById('regPassword').value.trim(),
-            role: document.getElementById('regRole').value
-        };
-
-        try {
-            const res = await fetch(`${API_BASE}/users`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-
-            const json = await res.json();
-            if (res.ok && json.status === 'success') {
-                alert('Akaun berjaya didaftarkan! Sila log masuk menggunakan e-mel dan kata laluan anda.');
-                registerForm.reset();
-            } else {
-                alert(json.message || 'Pendaftaran gagal.');
-            }
-        } catch (err) {
-            console.error('Error registering:', err);
-            alert('Ralat sambungan semasa pendaftaran.');
-        }
-    });
+// 2. Fungsi Log Out Global
+function logout() {
+    if (confirm('Adakah anda pasti ingin log keluar?')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '../../index.html';
+    }
 }
 
-// Memuatkan senarai tempahan pelanggan
+// 3. Memuatkan Tempahan Pelanggan yang Sedang Log In (Dinamik mengikut user.id)
 async function loadMyBookings() {
     const tbody = document.getElementById('myBookings');
     if (!tbody) return;
 
+    const user = initSession();
+    if (!user) return;
+
     try {
-        const res = await fetch(`${API_BASE}/bookings?user_id=4`);
+        const res = await fetch(`${API_BASE}/bookings?user_id=${user.id}`);
         const json = await res.json();
         tbody.innerHTML = '';
 
-        if (json.status === 'success') {
+        if (json.status === 'success' && json.data.length > 0) {
             json.data.forEach(b => {
                 tbody.innerHTML += `
                     <tr>
@@ -92,21 +56,27 @@ async function loadMyBookings() {
                     </tr>
                 `;
             });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tiada rekod tempahan ditemui.</td></tr>';
         }
     } catch (err) {
         console.error('Error loading my bookings:', err);
     }
 }
 
-// Membatalkan tempahan
+// 4. Membatalkan Tempahan Pelanggan
 async function cancelBooking(id) {
-    if (confirm('Batal tempahan ini?')) {
-        await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
-        loadMyBookings();
+    if (confirm('Adakah anda pasti ingin membatalkan tempahan ini?')) {
+        try {
+            await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
+            loadMyBookings();
+        } catch (err) {
+            console.error('Error canceling booking:', err);
+        }
     }
 }
 
-// Memuatkan maklumat tiket & Kod QR daripada API
+// 5. Memuatkan Maklumat Tiket Digital & Gambar Kod QR daripada API
 async function loadTicket() {
     const ticketInfo = document.getElementById('ticketInfo');
     if (!ticketInfo) return;
@@ -126,7 +96,10 @@ async function loadTicket() {
                     <p class="mb-1"><strong>Tarikh:</strong> ${b.event_date}</p>
                     <p class="mb-0"><strong>Kuantiti:</strong> ${b.tickets_qty} Tiket</p>
                 `;
-                document.getElementById('qrImage').src = b.qr_code_url;
+                const qrImg = document.getElementById('qrImage');
+                if (qrImg) {
+                    qrImg.src = b.qr_code_url;
+                }
             }
         } catch (err) {
             console.error('Error loading ticket details:', err);
@@ -134,7 +107,9 @@ async function loadTicket() {
     }
 }
 
+// Inisialisasi apabila dokumen selesai dimuatkan
 document.addEventListener('DOMContentLoaded', () => {
+    initSession();
     loadMyBookings();
     loadTicket();
 });
