@@ -1,12 +1,13 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
+// Kendalikan Log Masuk (Login)
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const body = {
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value
+            email: document.getElementById('email').value.trim(),
+            password: document.getElementById('password').value.trim()
         };
 
         try {
@@ -17,20 +18,55 @@ if (loginForm) {
             });
 
             const json = await res.json();
-            if (res.ok) {
+            if (res.ok && json.status === 'success') {
                 localStorage.setItem('user', JSON.stringify(json.user));
                 localStorage.setItem('token', json.token);
                 alert('Log masuk berjaya!');
                 window.location.href = 'my-bookings.html';
             } else {
-                alert(json.message);
+                alert(json.message || 'Log masuk gagal.');
             }
         } catch (err) {
             console.error('Error logging in:', err);
+            alert('Ralat sambungan ke pelayan.');
         }
     });
 }
 
+// Kendalikan Pendaftaran Akaun Baharu (Register)
+const registerForm = document.getElementById('registerForm');
+if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const body = {
+            name: document.getElementById('regName').value.trim(),
+            email: document.getElementById('regEmail').value.trim(),
+            password: document.getElementById('regPassword').value.trim(),
+            role: document.getElementById('regRole').value
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                alert('Akaun berjaya didaftarkan! Sila log masuk menggunakan e-mel dan kata laluan anda.');
+                registerForm.reset();
+            } else {
+                alert(json.message || 'Pendaftaran gagal.');
+            }
+        } catch (err) {
+            console.error('Error registering:', err);
+            alert('Ralat sambungan semasa pendaftaran.');
+        }
+    });
+}
+
+// Memuatkan senarai tempahan pelanggan
 async function loadMyBookings() {
     const tbody = document.getElementById('myBookings');
     if (!tbody) return;
@@ -62,6 +98,7 @@ async function loadMyBookings() {
     }
 }
 
+// Membatalkan tempahan
 async function cancelBooking(id) {
     if (confirm('Batal tempahan ini?')) {
         await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
@@ -69,6 +106,7 @@ async function cancelBooking(id) {
     }
 }
 
+// Memuatkan maklumat tiket & Kod QR daripada API
 async function loadTicket() {
     const ticketInfo = document.getElementById('ticketInfo');
     if (!ticketInfo) return;
