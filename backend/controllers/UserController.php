@@ -9,7 +9,6 @@ class UserController {
         $this->db = $database->connect();
     }
 
-    // GET /users atau GET /users/{id}
     public function getUsers($id = null) {
         if ($id) {
             $stmt = $this->db->prepare("SELECT id, name, email, role, created_at FROM users WHERE id = ?");
@@ -29,7 +28,6 @@ class UserController {
         }
     }
 
-    // POST /users
     public function handlePost() {
         $data = json_decode(file_get_contents("php://input"), true) ?? $_POST;
         $action = $_GET['action'] ?? '';
@@ -41,7 +39,6 @@ class UserController {
         }
     }
 
-    // DELETE /users/{id}
     public function deleteUser($id) {
         if (!$id) {
             http_response_code(400);

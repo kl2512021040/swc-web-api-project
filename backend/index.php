@@ -12,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uriSegments = explode('/', trim($uri, '/'));
 
-// Cari indeks 'backend' dalam URI
 $backendIndex = array_search('backend', $uriSegments);
 $resource = ($backendIndex !== false && isset($uriSegments[$backendIndex + 1])) ? $uriSegments[$backendIndex + 1] : '';
 $id = ($backendIndex !== false && isset($uriSegments[$backendIndex + 2])) ? $uriSegments[$backendIndex + 2] : null;

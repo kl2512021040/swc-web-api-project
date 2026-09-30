@@ -1,5 +1,31 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
+// Pengurusan Sesi & Sapaan Pengguna
+function initSession() {
+    const userData = localStorage.getItem('user');
+    const greetingEl = document.getElementById('userGreeting');
+    
+    if (userData) {
+        const user = JSON.parse(userData);
+        if (greetingEl) {
+            greetingEl.textContent = `Selamat datang, ${user.name}!`;
+        }
+        return user;
+    } else {
+        window.location.href = '../../index.html';
+        return null;
+    }
+}
+
+// Fungsi Log Out
+function logout() {
+    if (confirm('Adakah anda pasti ingin log keluar?')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '../../index.html';
+    }
+}
+
 // Memuatkan senarai pengguna
 async function loadUsers() {
     const userTableBody = document.getElementById('userTableBody');
@@ -10,7 +36,7 @@ async function loadUsers() {
         const json = await res.json();
         userTableBody.innerHTML = '';
 
-        if (json.status === 'success') {
+        if (json.status === 'success' && Array.isArray(json.data)) {
             json.data.forEach(user => {
                 userTableBody.innerHTML += `
                     <tr>
@@ -28,9 +54,12 @@ async function loadUsers() {
                     </tr>
                 `;
             });
+        } else {
+            userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tiada pengguna ditemui.</td></tr>';
         }
     } catch (err) {
         console.error('Error loading users:', err);
+        userTableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Ralat memuatkan data pengguna dari pelayan.</td></tr>';
     }
 }
 
@@ -91,5 +120,6 @@ if (adminCreateUserForm) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initSession();
     loadUsers();
 });
