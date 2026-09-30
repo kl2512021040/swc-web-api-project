@@ -3,23 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Acara - Customer Booking</title>
+    <title>Katalog Acara Antarabangsa - Customer Booking</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
     <!-- NAVBAR CUSTOMER -->
-    <nav class="navbar navbar-dark bg-primary mb-4 px-4 d-flex justify-content-between align-items-center">
-        <span class="navbar-brand fw-bold mb-0">Tempahan Tiket Acara</span>
-        <div>
-            <a href="../customer-profile/my-bookings.html" class="btn btn-light btn-sm me-2 fw-bold">Tiket & Profil Saya</a>
+    <nav class="navbar navbar-dark bg-primary mb-4 px-4 d-flex justify-content-between align-items-center shadow-sm">
+        <span class="navbar-brand fw-bold mb-0">International Outdoor Event Booking</span>
+        <div class="d-flex align-items-center">
+            <!-- WIDGET PENUKARAN MATA WANG -->
+            <div class="me-3 d-flex align-items-center text-white">
+                <label for="currencySelect" class="me-2 small fw-bold text-nowrap">Mata Wang:</label>
+                <select id="currencySelect" class="form-select form-select-sm fw-bold" onchange="changeCurrency()">
+                    <option value="MYR" selected>MYR (RM)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="SGD">SGD (S$)</option>
+                </select>
+            </div>
+            <a href="../customer-profile/my-bookings.html" class="btn btn-light btn-sm me-2 fw-bold">Tiket Saya</a>
             <button onclick="logout()" class="btn btn-outline-light btn-sm fw-bold">Log Out</button>
         </div>
     </nav>
 
     <div class="container my-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Katalog Acara Terkini</h2>
+            <div>
+                <h2>Katalog Acara Terkini</h2>
+                <p class="text-muted mb-0">Dilengkapi dengan ramalan cuaca lokasi & penukaran mata wang langsung.</p>
+            </div>
             <a href="../customer-profile/my-bookings.html" class="btn btn-outline-primary fw-bold">Lihat Tempahan Saya &rarr;</a>
         </div>
 
@@ -27,7 +40,7 @@
         <div id="eventsList" class="row g-4">
             <div class="col-12 text-center text-muted py-5">
                 <div class="spinner-border text-primary mb-2" role="status"></div>
-                <p>Memuatkan senarai acara terkini...</p>
+                <p>Memuatkan senarai acara & maklumat API...</p>
             </div>
         </div>
     </div>
