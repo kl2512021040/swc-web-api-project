@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Tempahan Saya</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container my-5">
+        <h2 class="mb-4">Sejarah Tempahan Saya</h2>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th>ID</th><th>Nama Acara</th><th>Bil. Tiket</th><th>Jumlah (RM)</th><th>Status</th><th>Kod QR Tiket</th><th>Tindakan</th></tr></thead>
+                    <tbody id="myBookings"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
+
+        async function loadMyBookings() {
+            const res = await fetch(`${API_BASE}/bookings?user_id=4`);
+            const json = await res.json();
+            const tbody = document.getElementById('myBookings');
+            tbody.innerHTML = '';
+
+            json.data.forEach(b => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${b.id}</td>
+                        <td><strong>${b.event_title}</strong></td>
+                        <td>${b.tickets_qty}</td>
+                        <td>RM ${b.total_price}</td>
+                        <td><span class="badge ${b.booking_status === 'Confirmed' ? 'bg-success' : 'bg-danger'}">${b.booking_status}</span></td>
+                        <td><a href="ticket.html?id=${b.id}" class="btn btn-sm btn-info text-white">Lihat Kod QR</a></td>
+                        <td>
+                            ${b.booking_status === 'Confirmed' ? `<button onclick="cancelBooking(${b.id})" class="btn btn-sm btn-outline-danger">Batal</button>` : '-'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function cancelBooking(id) {
+            if (confirm('Batal tempahan ini?')) {
+                await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
+                loadMyBookings();
+            }
+        }
+
+        loadMyBookings();
+    </script>
+</body>
+</html>

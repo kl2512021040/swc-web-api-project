@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Urus Venue - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container my-5">
+        <a href="index.html" class="btn btn-secondary mb-3">&larr; Kembali</a>
+        <h2 class="mb-4">Pengurusan Dewan / Venue</h2>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-success text-white">Tambah Venue Baharu</div>
+            <div class="card-body">
+                <form id="addVenueForm">
+                    <div class="row g-3">
+                        <div class="col-md-3"><input type="text" id="vName" class="form-control" placeholder="Nama Venue" required></div>
+                        <div class="col-md-3"><input type="text" id="vLoc" class="form-control" placeholder="Lokasi" required></div>
+                        <div class="col-md-2"><input type="number" id="vCap" class="form-control" placeholder="Kapasiti" required></div>
+                        <div class="col-md-2"><input type="number" id="vPrice" class="form-control" placeholder="Harga/Hari" required></div>
+                        <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Simpan</button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead><tr><th>ID</th><th>Nama</th><th>Lokasi</th><th>Kapasiti</th><th>Harga (RM)</th><th>Tindakan</th></tr></thead>
+                    <tbody id="venueTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
+
+        async function loadVenues() {
+            const res = await fetch(`${API_BASE}/venues`);
+            const json = await res.json();
+            const tbody = document.getElementById('venueTable');
+            tbody.innerHTML = '';
+            json.data.forEach(v => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${v.id}</td>
+                        <td>${v.name}</td>
+                        <td>${v.location}</td>
+                        <td>${v.capacity}</td>
+                        <td>${v.price_per_day}</td>
+                        <td><button onclick="deleteVenue(${v.id})" class="btn btn-danger btn-sm">Padam</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('addVenueForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                name: document.getElementById('vName').value,
+                location: document.getElementById('vLoc').value,
+                capacity: document.getElementById('vCap').value,
+                price_per_day: document.getElementById('vPrice').value
+            };
+
+            await fetch(`${API_BASE}/venues`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            e.target.reset();
+            loadVenues();
+        });
+
+        async function deleteVenue(id) {
+            if (confirm('Padam venue ini?')) {
+                await fetch(`${API_BASE}/venues/${id}`, { method: 'DELETE' });
+                loadVenues();
+            }
+        }
+
+        loadVenues();
+    </script>
+</body>
+</html>

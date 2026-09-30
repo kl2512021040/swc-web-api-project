@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Borang Tempahan Tiket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container my-5" style="max-width: 500px;">
+        <a href="index.html" class="btn btn-secondary mb-3">&larr; Kembali</a>
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">Borang Tempahan Tiket</div>
+            <div class="card-body">
+                <div id="eventDetails" class="alert alert-info">Pemuatan maklumat acara...</div>
+                <form id="bookingForm">
+                    <input type="hidden" id="eventId">
+                    <div class="mb-3">
+                        <label>Kuantiti Tiket</label>
+                        <input type="number" id="qty" class="form-control" value="1" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Sahkan & Bayar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event_id');
+
+        async function loadEvent() {
+            const res = await fetch(`${API_BASE}/events/${eventId}`);
+            const json = await res.json();
+            const e = json.data;
+            document.getElementById('eventId').value = e.id;
+            document.getElementById('eventDetails').innerHTML = `
+                <h5>${e.title}</h5>
+                <p class="mb-0">Harga: RM ${e.ticket_price} / tiket</p>
+            `;
+        }
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                user_id: 3,
+                event_id: document.getElementById('eventId').value,
+                tickets_qty: document.getElementById('qty').value
+            };
+
+            const res = await fetch(`${API_BASE}/bookings`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const json = await res.json();
+            if (res.ok) {
+                alert('Tempahan Berjaya!');
+                window.location.href = '../customer-profile/my-bookings.html';
+            } else {
+                alert(json.message);
+            }
+        });
+
+        loadEvent();
+    </script>
+</body>
+</html>

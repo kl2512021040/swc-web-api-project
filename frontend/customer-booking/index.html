@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Katalog Acara & Tiket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container my-5">
+        <h2 class="mb-3 text-center">Tempahan Tiket Acara & Dewan</h2>
+        
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cari nama acara...">
+                    <button onclick="searchEvents()" class="btn btn-primary">Cari</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4" id="eventGrid"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
+
+        async function fetchEvents(query = '') {
+            const res = await fetch(`${API_BASE}/events${query ? '?search=' + query : ''}`);
+            const json = await res.json();
+            const grid = document.getElementById('eventGrid');
+            grid.innerHTML = '';
+
+            json.data.forEach(e => {
+                grid.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">${e.title}</h5>
+                                <p class="card-text text-muted mb-1">${e.description}</p>
+                                <p class="mb-1"><strong>Tarikh:</strong> ${e.event_date}</p>
+                                <p class="mb-1"><strong>Lokasi:</strong> ${e.venue_name}, ${e.location}</p>
+                                <h6 class="mt-2 text-success">RM ${e.ticket_price}</h6>
+                            </div>
+                            <div class="card-footer bg-white border-top-0">
+                                <a href="book.html?event_id=${e.id}" class="btn btn-outline-primary w-100">Tempah Tiket</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function searchEvents() {
+            const q = document.getElementById('searchInput').value;
+            fetchEvents(q);
+        }
+
+        fetchEvents();
+    </script>
+</body>
+</html>

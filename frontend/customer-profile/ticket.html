@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Tiket Digital & Kod QR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container my-5 text-center" style="max-width: 450px;">
+        <a href="my-bookings.html" class="btn btn-secondary mb-3">&larr; Kembali</a>
+        <div class="card shadow p-4" id="ticketCard">
+            <h4>Tiket Masuk Digital</h4>
+            <hr>
+            <div id="ticketInfo">Pemuatan maklumat tiket...</div>
+            <div class="my-3">
+                <img id="qrImage" src="" alt="Kod QR Tiket" class="img-fluid border p-2">
+            </div>
+            <p class="text-muted small">Tunjukkan Kod QR ini semasa masuk ke pintu peradaban venue.</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('id');
+
+        async function loadTicket() {
+            const res = await fetch(`${API_BASE}/bookings/${bookingId}`);
+            const json = await res.json();
+            const b = json.data;
+
+            document.getElementById('ticketInfo').innerHTML = `
+                <h5>${b.event_title}</h5>
+                <p class="mb-1"><strong>Pelanggan:</strong> ${b.customer_name}</p>
+                <p class="mb-1"><strong>Tarikh:</strong> ${b.event_date}</p>
+                <p class="mb-0"><strong>Kuantiti:</strong> ${b.tickets_qty} Tiket</p>
+            `;
+            document.getElementById('qrImage').src = b.qr_code_url;
+        }
+
+        loadTicket();
+    </script>
+</body>
+</html>

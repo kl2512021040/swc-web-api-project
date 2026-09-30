@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Cipta Acara Baru</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container my-5" style="max-width: 600px;">
+        <a href="index.html" class="btn btn-secondary mb-3">&larr; Kembali</a>
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">Borang Cipta Acara Baharu</div>
+            <div class="card-body">
+                <form id="createEventForm">
+                    <div class="mb-3"><label>Tajuk Acara</label><input type="text" id="title" class="form-control" required></div>
+                    <div class="mb-3"><label>Penerangan</label><textarea id="desc" class="form-control" rows="2"></textarea></div>
+                    <div class="mb-3"><label>Tarikh Acara</label><input type="date" id="event_date" class="form-control" required></div>
+                    <div class="mb-3">
+                        <label>Pilih Venue</label>
+                        <select id="venue_id" class="form-select" required></select>
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3"><label>Harga Tiket (RM)</label><input type="number" step="0.01" id="ticket_price" class="form-control" required></div>
+                        <div class="col mb-3"><label>Bil. Tiket</label><input type="number" id="available_tickets" class="form-control" required></div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Terbitkan Acara</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
+
+        async function loadVenueDropdown() {
+            const res = await fetch(`${API_BASE}/venues`);
+            const json = await res.json();
+            const select = document.getElementById('venue_id');
+            select.innerHTML = '<option value="">-- Pilih Venue --</option>';
+            json.data.forEach(v => {
+                select.innerHTML += `<option value="${v.id}">${v.name} (${v.location})</option>`;
+            });
+        }
+
+        document.getElementById('createEventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('desc').value,
+                event_date: document.getElementById('event_date').value,
+                venue_id: document.getElementById('venue_id').value,
+                ticket_price: document.getElementById('ticket_price').value,
+                available_tickets: document.getElementById('available_tickets').value,
+                organiser_id: 2
+            };
+
+            const res = await fetch(`${API_BASE}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                alert('Acara berjaya dicipta!');
+                window.location.href = 'index.html';
+            }
+        });
+
+        loadVenueDropdown();
+    </script>
+</body>
+</html>
