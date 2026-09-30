@@ -29,7 +29,7 @@ if (mainLoginForm) {
                 } else if (role === 'Organiser') {
                     window.location.href = 'frontend/organiser/index.html';
                 } else {
-                    window.location.href = 'frontend/customer-profile/my-bookings.html';
+                    window.location.href = 'frontend/customer-booking/index.html';
                 }
             } else {
                 alert(json.message || 'E-mel atau kata laluan tidak sah.');

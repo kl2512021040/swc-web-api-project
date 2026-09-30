@@ -1,6 +1,14 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-// Fungsi Log Out
+function checkSession() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+        window.location.href = '../../index.html';
+        return null;
+    }
+    return JSON.parse(userStr);
+}
+
 function logout() {
     if (confirm('Adakah anda pasti ingin log keluar?')) {
         localStorage.removeItem('user');
@@ -13,23 +21,34 @@ async function loadMyBookings() {
     const tbody = document.getElementById('myBookings');
     if (!tbody) return;
 
+    const user = checkSession();
+    if (!user) return;
+
     try {
-        const res = await fetch(`${API_BASE}/bookings?user_id=4`);
+        const res = await fetch(`${API_BASE}/bookings?user_id=${user.id}`);
         const json = await res.json();
         tbody.innerHTML = '';
 
-        if (json.status === 'success') {
+        if (json.status === 'success' && Array.isArray(json.data)) {
+            if (json.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Anda belum membuat sebarang tempahan tiket.</td></tr>';
+                return;
+            }
+
             json.data.forEach(b => {
+                const isConfirmed = b.booking_status === 'Confirmed';
                 tbody.innerHTML += `
                     <tr>
                         <td>#${b.id}</td>
                         <td><strong>${b.event_title}</strong></td>
-                        <td>${b.tickets_qty}</td>
-                        <td>RM ${b.total_price}</td>
-                        <td><span class="badge ${b.booking_status === 'Confirmed' ? 'bg-success' : 'bg-danger'}">${b.booking_status}</span></td>
-                        <td><a href="ticket.html?id=${b.id}" class="btn btn-sm btn-info text-white">Lihat Kod QR</a></td>
+                        <td>${b.tickets_qty} Tiket</td>
+                        <td>RM ${parseFloat(b.total_price).toFixed(2)}</td>
+                        <td><span class="badge ${isConfirmed ? 'bg-success' : 'bg-danger'}">${b.booking_status}</span></td>
                         <td>
-                            ${b.booking_status === 'Confirmed' ? `<button onclick="cancelBooking(${b.id})" class="btn btn-sm btn-outline-danger">Batal</button>` : '-'}
+                            ${isConfirmed ? `<a href="ticket.html?id=${b.id}" class="btn btn-sm btn-info text-white fw-bold">Lihat Kod QR</a>` : '<span class="text-muted">-</span>'}
+                        </td>
+                        <td>
+                            ${isConfirmed ? `<button onclick="cancelBooking(${b.id})" class="btn btn-sm btn-outline-danger">Batal</button>` : '<span class="text-muted">-</span>'}
                         </td>
                     </tr>
                 `;
@@ -41,9 +60,20 @@ async function loadMyBookings() {
 }
 
 async function cancelBooking(id) {
-    if (confirm('Batal tempahan ini?')) {
-        await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
-        loadMyBookings();
+    if (confirm('Adakah anda pasti ingin membatalkan tempahan ini?')) {
+        try {
+            const res = await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
+            const json = await res.json();
+
+            if (res.ok && json.status === 'success') {
+                alert('Tempahan berjaya dibatalkan.');
+                loadMyBookings();
+            } else {
+                alert(json.message || 'Gagal membatalkan tempahan.');
+            }
+        } catch (err) {
+            console.error('Error cancelling booking:', err);
+        }
     }
 }
 
@@ -61,9 +91,9 @@ async function loadTicket() {
             if (json.status === 'success') {
                 const b = json.data;
                 ticketInfo.innerHTML = `
-                    <h5>${b.event_title}</h5>
-                    <p class="mb-1"><strong>Pelanggan:</strong> ${b.customer_name}</p>
-                    <p class="mb-1"><strong>Tarikh:</strong> ${b.event_date}</p>
+                    <h5 class="fw-bold text-primary mb-2">${b.event_title}</h5>
+                    <p class="mb-1"><strong>Nama Pelanggan:</strong> ${b.customer_name}</p>
+                    <p class="mb-1"><strong>Tarikh Acara:</strong> ${b.event_date}</p>
                     <p class="mb-0"><strong>Kuantiti:</strong> ${b.tickets_qty} Tiket</p>
                 `;
                 document.getElementById('qrImage').src = b.qr_code_url;
@@ -75,6 +105,7 @@ async function loadTicket() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    checkSession();
     loadMyBookings();
     loadTicket();
 });
