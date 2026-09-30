@@ -1,5 +1,16 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
+// Fungsi Menyemak Sesi (Pencegahan Double Login)
+function checkSession() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+        // Jika belum log masuk, kembalikan ke portal utama
+        window.location.href = '../../index.html';
+        return null;
+    }
+    return JSON.parse(userStr);
+}
+
 // Fungsi Log Out
 function logout() {
     if (confirm('Adakah anda pasti ingin log keluar?')) {
@@ -9,10 +20,10 @@ function logout() {
     }
 }
 
-// 1. Memuatkan Senarai Pengguna
+// ================= USER MANAGEMENT ================= //
 async function loadUsers() {
     const userTableBody = document.getElementById('userTableBody');
-    if (!userTableBody) return;
+    if (!userTableBody) return; // Abaikan jika bukan di halaman index.html
 
     try {
         const res = await fetch(`${API_BASE}/users`);
@@ -43,7 +54,6 @@ async function loadUsers() {
     }
 }
 
-// 2. Fungsi Padam User
 async function deleteUser(id) {
     if (confirm(`Adakah anda pasti ingin memadam pengguna ID #${id}?`)) {
         try {
@@ -62,7 +72,6 @@ async function deleteUser(id) {
     }
 }
 
-// 3. Form Register User oleh Admin
 const adminCreateUserForm = document.getElementById('adminCreateUserForm');
 if (adminCreateUserForm) {
     adminCreateUserForm.addEventListener('submit', async (e) => {
@@ -95,10 +104,10 @@ if (adminCreateUserForm) {
     });
 }
 
-// 4. Memuatkan Senarai Venue
+// ================= VENUE MANAGEMENT ================= //
 async function loadVenues() {
     const venueTable = document.getElementById('venueTable');
-    if (!venueTable) return;
+    if (!venueTable) return; // Abaikan jika bukan di halaman venues.html
 
     try {
         const res = await fetch(`${API_BASE}/venues`);
@@ -131,7 +140,6 @@ async function loadVenues() {
     }
 }
 
-// 5. Borang Tambah Venue
 const addVenueForm = document.getElementById('addVenueForm');
 if (addVenueForm) {
     addVenueForm.addEventListener('submit', async (e) => {
@@ -166,7 +174,6 @@ if (addVenueForm) {
     });
 }
 
-// 6. Padam Venue
 async function deleteVenue(id) {
     if (confirm(`Padam venue ID #${id}?`)) {
         try {
@@ -184,8 +191,9 @@ async function deleteVenue(id) {
     }
 }
 
-// Jalankan fungsi memuatkan data apabila dokumen sedia
+// ================= INITIALIZATION ================= //
 document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
-    loadVenues();
+    checkSession(); // Semak sesi hanya sekali masa page loading
+    loadUsers();    // Akan berfungsi jika ada elemen userTableBody (index.html)
+    loadVenues();   // Akan berfungsi jika ada elemen venueTable (venues.html)
 });

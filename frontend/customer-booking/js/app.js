@@ -1,28 +1,55 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-async function fetchEvents(query = '') {
-    const grid = document.getElementById('eventGrid');
-    if (!grid) return;
+function checkSession() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+        window.location.href = '../../index.html';
+        return null;
+    }
+    return JSON.parse(userStr);
+}
+
+function logout() {
+    if (confirm('Adakah anda pasti ingin log keluar?')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '../../index.html';
+    }
+}
+
+// Memuatkan Senarai Acara untuk Pelanggan
+async function loadCatalogEvents() {
+    const eventsList = document.getElementById('eventsList');
+    if (!eventsList) return;
 
     try {
-        const res = await fetch(`${API_BASE}/events${query ? '?search=' + encodeURIComponent(query) : ''}`);
+        const res = await fetch(`${API_BASE}/events`);
         const json = await res.json();
-        grid.innerHTML = '';
+        eventsList.innerHTML = '';
 
-        if (json.status === 'success') {
+        if (json.status === 'success' && Array.isArray(json.data)) {
+            if (json.data.length === 0) {
+                eventsList.innerHTML = '<div class="col-12"><div class="alert alert-warning">Tiada acara tersedia buat masa ini.</div></div>';
+                return;
+            }
+
             json.data.forEach(e => {
-                grid.innerHTML += `
+                eventsList.innerHTML += `
                     <div class="col-md-4">
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title text-primary">${e.title}</h5>
-                                <p class="card-text text-muted mb-1">${e.description}</p>
-                                <p class="mb-1"><strong>Tarikh:</strong> ${e.event_date}</p>
-                                <p class="mb-1"><strong>Lokasi:</strong> ${e.venue_name}, ${e.location}</p>
-                                <h6 class="mt-2 text-success">RM ${e.ticket_price}</h6>
-                            </div>
-                            <div class="card-footer bg-white border-top-0">
-                                <a href="book.html?event_id=${e.id}" class="btn btn-outline-primary w-100">Tempah Tiket</a>
+                                <h5 class="card-title fw-bold text-primary">${e.title}</h5>
+                                <p class="card-text text-muted">${e.description || 'Tiada penerangan.'}</p>
+                                <ul class="list-unstyled">
+                                    <li><strong>Tarikh:</strong> ${e.event_date}</li>
+                                    <li><strong>Venue:</strong> ${e.venue_name} (${e.location})</li>
+                                    <li><strong>Harga:</strong> RM ${parseFloat(e.ticket_price).toFixed(2)}</li>
+                                    <li><strong>Baki Tiket:</strong> <span class="badge bg-success">${e.available_tickets} Tiket</span></li>
+                                </ul>
+                                <div class="mt-3">
+                                    <input type="number" id="qty_${e.id}" class="form-control mb-2" value="1" min="1" max="${e.available_tickets}">
+                                    <button onclick="bookTicket(${e.id}, ${e.ticket_price})" class="btn btn-primary w-100 fw-bold">Tempah Sekarang</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -30,50 +57,31 @@ async function fetchEvents(query = '') {
             });
         }
     } catch (err) {
-        console.error('Error fetching events:', err);
+        console.error('Error loading catalog:', err);
     }
 }
 
-function searchEvents() {
-    const q = document.getElementById('searchInput').value;
-    fetchEvents(q);
-}
+// Fungsi Membuat Tempahan
+async function bookTicket(eventId, ticketPrice) {
+    const user = checkSession();
+    if (!user) return;
 
-async function loadEventForBooking() {
-    const eventDetails = document.getElementById('eventDetails');
-    if (!eventDetails) return;
+    const qtyInput = document.getElementById(`qty_${eventId}`);
+    const ticketsQty = parseInt(qtyInput.value);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('event_id');
-
-    if (eventId) {
-        try {
-            const res = await fetch(`${API_BASE}/events/${eventId}`);
-            const json = await res.json();
-            if (json.status === 'success') {
-                const e = json.data;
-                document.getElementById('eventId').value = e.id;
-                eventDetails.innerHTML = `
-                    <h5>${e.title}</h5>
-                    <p class="mb-0">Harga: RM ${e.ticket_price} / tiket</p>
-                `;
-            }
-        } catch (err) {
-            console.error('Error loading event booking details:', err);
-        }
+    if (ticketsQty <= 0) {
+        alert('Sila masukkan kuantiti tiket yang sah.');
+        return;
     }
-}
 
-const bookingForm = document.getElementById('bookingForm');
-if (bookingForm) {
-    bookingForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const body = {
-            user_id: 3,
-            event_id: document.getElementById('eventId').value,
-            tickets_qty: document.getElementById('qty').value
-        };
+    const body = {
+        user_id: user.id,
+        event_id: eventId,
+        tickets_qty: ticketsQty,
+        total_price: ticketsQty * ticketPrice
+    };
 
+    try {
         const res = await fetch(`${API_BASE}/bookings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -81,16 +89,19 @@ if (bookingForm) {
         });
 
         const json = await res.json();
-        if (res.ok) {
-            alert('Tempahan Berjaya!');
+
+        if (res.ok && json.status === 'success') {
+            alert('Tempahan berjaya dilakukan!');
             window.location.href = '../customer-profile/my-bookings.html';
         } else {
             alert(json.message || 'Gagal membuat tempahan.');
         }
-    });
+    } catch (err) {
+        console.error('Error booking ticket:', err);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchEvents();
-    loadEventForBooking();
+    checkSession();
+    loadCatalogEvents();
 });
