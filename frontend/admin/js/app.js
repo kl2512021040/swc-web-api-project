@@ -46,7 +46,7 @@ async function deleteUser(id) {
 
             if (res.ok && json.status === 'success') {
                 alert('Pengguna berjaya dipadam!');
-                loadUsers(); // Muat semula jadual pengguna
+                loadUsers();
             } else {
                 alert(json.message || 'Gagal memadam pengguna.');
             }
@@ -92,33 +92,4 @@ if (adminCreateUserForm) {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
-});
-
-// Pengurusan Sesi & Sapaan Pengguna
-function initSession() {
-    const userData = localStorage.getItem('user');
-    const greetingEl = document.getElementById('userGreeting');
-    
-    if (userData) {
-        const user = JSON.parse(userData);
-        if (greetingEl) {
-            greetingEl.textContent = `Selamat datang, ${user.name}!`;
-        }
-    } else {
-        // Jika tiada sesi, kembalikan ke portal login utama
-        window.location.href = '../../index.html';
-    }
-}
-
-// Fungsi Log Out
-function logout() {
-    if (confirm('Adakah anda pasti ingin log keluar?')) {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        window.location.href = '../../index.html';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    initSession();
 });

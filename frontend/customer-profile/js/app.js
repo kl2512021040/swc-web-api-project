@@ -1,46 +1,16 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-// 1. Pengurusan Sesi & Sapaan Pengguna (Greeting Navbar)
-function initSession() {
-    const userData = localStorage.getItem('user');
-    const greetingEl = document.getElementById('userGreeting');
-    
-    if (userData) {
-        const user = JSON.parse(userData);
-        if (greetingEl) {
-            greetingEl.textContent = `Selamat datang, ${user.name}!`;
-        }
-        return user;
-    } else {
-        // Jika tiada sesi login, kembalikan ke homepage utama
-        window.location.href = '../../index.html';
-        return null;
-    }
-}
-
-// 2. Fungsi Log Out Global
-function logout() {
-    if (confirm('Adakah anda pasti ingin log keluar?')) {
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        window.location.href = '../../index.html';
-    }
-}
-
-// 3. Memuatkan Tempahan Pelanggan yang Sedang Log In (Dinamik mengikut user.id)
+// Memuatkan senarai tempahan pelanggan
 async function loadMyBookings() {
     const tbody = document.getElementById('myBookings');
     if (!tbody) return;
 
-    const user = initSession();
-    if (!user) return;
-
     try {
-        const res = await fetch(`${API_BASE}/bookings?user_id=${user.id}`);
+        const res = await fetch(`${API_BASE}/bookings?user_id=4`);
         const json = await res.json();
         tbody.innerHTML = '';
 
-        if (json.status === 'success' && json.data.length > 0) {
+        if (json.status === 'success') {
             json.data.forEach(b => {
                 tbody.innerHTML += `
                     <tr>
@@ -56,27 +26,21 @@ async function loadMyBookings() {
                     </tr>
                 `;
             });
-        } else {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tiada rekod tempahan ditemui.</td></tr>';
         }
     } catch (err) {
         console.error('Error loading my bookings:', err);
     }
 }
 
-// 4. Membatalkan Tempahan Pelanggan
+// Membatalkan tempahan
 async function cancelBooking(id) {
-    if (confirm('Adakah anda pasti ingin membatalkan tempahan ini?')) {
-        try {
-            await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
-            loadMyBookings();
-        } catch (err) {
-            console.error('Error canceling booking:', err);
-        }
+    if (confirm('Batal tempahan ini?')) {
+        await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
+        loadMyBookings();
     }
 }
 
-// 5. Memuatkan Maklumat Tiket Digital & Gambar Kod QR daripada API
+// Memuatkan maklumat tiket & Kod QR daripada API
 async function loadTicket() {
     const ticketInfo = document.getElementById('ticketInfo');
     if (!ticketInfo) return;
@@ -96,10 +60,7 @@ async function loadTicket() {
                     <p class="mb-1"><strong>Tarikh:</strong> ${b.event_date}</p>
                     <p class="mb-0"><strong>Kuantiti:</strong> ${b.tickets_qty} Tiket</p>
                 `;
-                const qrImg = document.getElementById('qrImage');
-                if (qrImg) {
-                    qrImg.src = b.qr_code_url;
-                }
+                document.getElementById('qrImage').src = b.qr_code_url;
             }
         } catch (err) {
             console.error('Error loading ticket details:', err);
@@ -107,9 +68,7 @@ async function loadTicket() {
     }
 }
 
-// Inisialisasi apabila dokumen selesai dimuatkan
 document.addEventListener('DOMContentLoaded', () => {
-    initSession();
     loadMyBookings();
     loadTicket();
 });
