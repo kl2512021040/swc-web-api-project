@@ -1,17 +1,14 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-// Fungsi Menyemak Sesi (Pencegahan Double Login)
 function checkSession() {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
-        // Jika belum log masuk, kembalikan ke portal utama
         window.location.href = '../../index.html';
         return null;
     }
     return JSON.parse(userStr);
 }
 
-// Fungsi Log Out
 function logout() {
     if (confirm('Adakah anda pasti ingin log keluar?')) {
         localStorage.removeItem('user');
@@ -23,7 +20,7 @@ function logout() {
 // ================= USER MANAGEMENT ================= //
 async function loadUsers() {
     const userTableBody = document.getElementById('userTableBody');
-    if (!userTableBody) return; // Abaikan jika bukan di halaman index.html
+    if (!userTableBody) return;
 
     try {
         const res = await fetch(`${API_BASE}/users`);
@@ -107,7 +104,7 @@ if (adminCreateUserForm) {
 // ================= VENUE MANAGEMENT ================= //
 async function loadVenues() {
     const venueTable = document.getElementById('venueTable');
-    if (!venueTable) return; // Abaikan jika bukan di halaman venues.html
+    if (!venueTable) return;
 
     try {
         const res = await fetch(`${API_BASE}/venues`);
@@ -145,12 +142,12 @@ if (addVenueForm) {
     addVenueForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const body = {
-            name: document.getElementById('vName').value.trim(),
-            location: document.getElementById('vLoc').value.trim(),
-            capacity: parseInt(document.getElementById('vCap').value),
-            price_per_day: parseFloat(document.getElementById('vPrice').value)
-        };
+        const name = document.getElementById('vName').value.trim();
+        const location = document.getElementById('vLoc').value.trim();
+        const capacity = parseInt(document.getElementById('vCap').value);
+        const price_per_day = parseFloat(document.getElementById('vPrice').value);
+
+        const body = { name, location, capacity, price_per_day };
 
         try {
             const res = await fetch(`${API_BASE}/venues`, {
@@ -162,7 +159,7 @@ if (addVenueForm) {
             const json = await res.json();
 
             if (res.ok && json.status === 'success') {
-                alert('Venue baharu berjaya ditambah!');
+                alert('Venue baharu berjaya disimpan!');
                 addVenueForm.reset();
                 loadVenues();
             } else {
@@ -170,6 +167,7 @@ if (addVenueForm) {
             }
         } catch (err) {
             console.error('Error adding venue:', err);
+            alert('Ralat sambungan semasa menambah venue.');
         }
     });
 }
@@ -191,9 +189,8 @@ async function deleteVenue(id) {
     }
 }
 
-// ================= INITIALIZATION ================= //
 document.addEventListener('DOMContentLoaded', () => {
-    checkSession(); // Semak sesi hanya sekali masa page loading
-    loadUsers();    // Akan berfungsi jika ada elemen userTableBody (index.html)
-    loadVenues();   // Akan berfungsi jika ada elemen venueTable (venues.html)
+    checkSession();
+    loadUsers();
+    loadVenues();
 });

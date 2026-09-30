@@ -1,6 +1,23 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-// 1. Memuatkan Dropdown Venue dari Admin
+function checkSession() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+        window.location.href = '../../index.html';
+        return null;
+    }
+    return JSON.parse(userStr);
+}
+
+function logout() {
+    if (confirm('Adakah anda pasti ingin log keluar?')) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '../../index.html';
+    }
+}
+
+// 1. Memuatkan Dropdown Venue dari API Admin
 async function loadVenueOptions() {
     const venueSelect = document.getElementById('eVenue');
     if (!venueSelect) return;
@@ -22,7 +39,7 @@ async function loadVenueOptions() {
     }
 }
 
-// 2. Memuatkan Senarai Acara
+// 2. Memuatkan Senarai Acara Aktif
 async function loadEvents() {
     const eventsTableBody = document.getElementById('eventsTableBody');
     if (!eventsTableBody) return;
@@ -59,19 +76,21 @@ async function loadEvents() {
     }
 }
 
-// 3. Borang Tambah Acara
+// 3. Handler Borang Tambah Acara Baharu
 const addEventForm = document.getElementById('addEventForm');
 if (addEventForm) {
     addEventForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const user = checkSession();
         const body = {
             title: document.getElementById('eTitle').value.trim(),
             description: document.getElementById('eDesc').value.trim(),
             event_date: document.getElementById('eDate').value,
             venue_id: document.getElementById('eVenue').value,
             total_tickets: parseInt(document.getElementById('eTickets').value),
-            ticket_price: parseFloat(document.getElementById('ePrice').value)
+            ticket_price: parseFloat(document.getElementById('ePrice').value),
+            organiser_id: user ? user.id : 1
         };
 
         try {
@@ -92,6 +111,7 @@ if (addEventForm) {
             }
         } catch (err) {
             console.error('Error adding event:', err);
+            alert('Ralat sambungan semasa menerbitkan acara.');
         }
     });
 }
@@ -116,6 +136,7 @@ async function deleteEvent(id) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    checkSession();
     loadVenueOptions();
     loadEvents();
 });

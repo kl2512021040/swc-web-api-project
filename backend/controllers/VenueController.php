@@ -9,6 +9,7 @@ class VenueController {
         $this->db = $database->connect();
     }
 
+    // GET /venues atau GET /venues/{id}
     public function getVenues($id = null) {
         if ($id) {
             $stmt = $this->db->prepare("SELECT * FROM venues WHERE id = ?");
@@ -28,17 +29,19 @@ class VenueController {
         }
     }
 
+    // POST /venues (Cipta Venue Baharu)
     public function createVenue() {
-        $data = json_decode(file_get_contents("php://input"), true) ?? $_POST;
+        $rawInput = file_get_contents("php://input");
+        $data = json_decode($rawInput, true) ?? $_POST;
 
         $name = trim($data['name'] ?? '');
         $location = trim($data['location'] ?? '');
-        $capacity = $data['capacity'] ?? 0;
-        $price_per_day = $data['price_per_day'] ?? 0.00;
+        $capacity = isset($data['capacity']) ? (int)$data['capacity'] : 0;
+        $price_per_day = isset($data['price_per_day']) ? (float)$data['price_per_day'] : 0.00;
 
-        if (empty($name) || empty($location) || empty($capacity) || empty($price_per_day)) {
+        if (empty($name) || empty($location) || $capacity <= 0 || $price_per_day <= 0) {
             http_response_code(400);
-            echo json_encode(["status" => "error", "message" => "All fields are required"]);
+            echo json_encode(["status" => "error", "message" => "Sila isi semua maklumat venue dengan betul."]);
             return;
         }
 
@@ -46,17 +49,19 @@ class VenueController {
             $stmt = $this->db->prepare("INSERT INTO venues (name, location, capacity, price_per_day) VALUES (?, ?, ?, ?)");
             $stmt->execute([$name, $location, $capacity, $price_per_day]);
 
+            http_response_code(201);
             echo json_encode([
                 "status" => "success",
-                "message" => "Venue created successfully",
+                "message" => "Venue baharu berjaya disimpan!",
                 "id" => $this->db->lastInsertId()
             ]);
         } catch (PDOException $e) {
             http_response_code(500);
-            echo json_encode(["status" => "error", "message" => "Failed to create venue"]);
+            echo json_encode(["status" => "error", "message" => "Gagal menambah venue: " . $e->getMessage()]);
         }
     }
 
+    // DELETE /venues/{id}
     public function deleteVenue($id) {
         if (!$id) {
             http_response_code(400);
