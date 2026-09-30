@@ -9,6 +9,37 @@
     <div class="container my-5">
         <h2 class="mb-4">Portal Pentadbir (Admin Dashboard)</h2>
         
+        <!-- BORANG 1: HAK KHAS ADMIN DAFTAR USER (ADMIN / ORGANISER / CUSTOMER) -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark text-white">Daftar Pengguna Baharu (Admin Access)</div>
+            <div class="card-body">
+                <form id="adminCreateUserForm">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" id="adminRegName" class="form-control" placeholder="Nama Penuh" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="email" id="adminRegEmail" class="form-control" placeholder="E-mel" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="password" id="adminRegPassword" class="form-control" placeholder="Kata Laluan" required>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="adminRegRole" class="form-select" required>
+                                <option value="Admin">Admin</option>
+                                <option value="Organiser">Organiser</option>
+                                <option value="Customer">Customer</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary">Daftar Pengguna</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- SENARAI PENGGUNA TERDAFTAR -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header bg-primary text-white">Senarai Pengguna Registered Users</div>
             <div class="card-body">

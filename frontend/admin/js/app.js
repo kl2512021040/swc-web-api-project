@@ -1,5 +1,6 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
+// Memuatkan senarai pengguna
 async function loadUsers() {
     const userTableBody = document.getElementById('userTableBody');
     if (!userTableBody) return;
@@ -16,7 +17,7 @@ async function loadUsers() {
                         <td>${user.id}</td>
                         <td>${user.name}</td>
                         <td>${user.email}</td>
-                        <td><span class="badge bg-info">${user.role}</span></td>
+                        <td><span class="badge ${user.role === 'Admin' ? 'bg-danger' : user.role === 'Organiser' ? 'bg-warning text-dark' : 'bg-info'}">${user.role}</span></td>
                     </tr>
                 `;
             });
@@ -26,6 +27,40 @@ async function loadUsers() {
     }
 }
 
+// Handler Borang Pendaftaran Akaun oleh Admin
+const adminCreateUserForm = document.getElementById('adminCreateUserForm');
+if (adminCreateUserForm) {
+    adminCreateUserForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const body = {
+            name: document.getElementById('adminRegName').value.trim(),
+            email: document.getElementById('adminRegEmail').value.trim(),
+            password: document.getElementById('adminRegPassword').value.trim(),
+            role: document.getElementById('adminRegRole').value
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const json = await res.json();
+            if (res.ok && json.status === 'success') {
+                alert(`Akaun berjaya dicipta sebagai ${body.role}!`);
+                adminCreateUserForm.reset();
+                loadUsers();
+            } else {
+                alert(json.message || 'Gagal mendaftar akaun.');
+            }
+        } catch (err) {
+            console.error('Error creating user:', err);
+        }
+    });
+}
+
+// Memuatkan senarai venue
 async function loadVenues() {
     const venueTable = document.getElementById('venueTable');
     if (!venueTable) return;
