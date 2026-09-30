@@ -19,32 +19,6 @@
         </div>
     </div>
 
-    <script>
-        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const body = {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            };
-
-            const res = await fetch(`${API_BASE}/users?action=login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-
-            const json = await res.json();
-            if (res.ok) {
-                localStorage.setItem('user', JSON.stringify(json.user));
-                localStorage.setItem('token', json.token);
-                alert('Log masuk berjaya!');
-                window.location.href = 'my-bookings.html';
-            } else {
-                alert(json.message);
-            }
-        });
-    </script>
+    <script src="js/app.js"></script>
 </body>
 </html>

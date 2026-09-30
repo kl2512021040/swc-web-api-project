@@ -35,54 +35,6 @@
         </div>
     </div>
 
-    <script>
-        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
-
-        async function loadVenues() {
-            const res = await fetch(`${API_BASE}/venues`);
-            const json = await res.json();
-            const tbody = document.getElementById('venueTable');
-            tbody.innerHTML = '';
-            json.data.forEach(v => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${v.id}</td>
-                        <td>${v.name}</td>
-                        <td>${v.location}</td>
-                        <td>${v.capacity}</td>
-                        <td>${v.price_per_day}</td>
-                        <td><button onclick="deleteVenue(${v.id})" class="btn btn-danger btn-sm">Padam</button></td>
-                    </tr>
-                `;
-            });
-        }
-
-        document.getElementById('addVenueForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const body = {
-                name: document.getElementById('vName').value,
-                location: document.getElementById('vLoc').value,
-                capacity: document.getElementById('vCap').value,
-                price_per_day: document.getElementById('vPrice').value
-            };
-
-            await fetch(`${API_BASE}/venues`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            e.target.reset();
-            loadVenues();
-        });
-
-        async function deleteVenue(id) {
-            if (confirm('Padam venue ini?')) {
-                await fetch(`${API_BASE}/venues/${id}`, { method: 'DELETE' });
-                loadVenues();
-            }
-        }
-
-        loadVenues();
-    </script>
+    <script src="js/app.js"></script>
 </body>
 </html>

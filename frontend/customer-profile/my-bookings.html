@@ -18,40 +18,6 @@
         </div>
     </div>
 
-    <script>
-        const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
-
-        async function loadMyBookings() {
-            const res = await fetch(`${API_BASE}/bookings?user_id=4`);
-            const json = await res.json();
-            const tbody = document.getElementById('myBookings');
-            tbody.innerHTML = '';
-
-            json.data.forEach(b => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>#${b.id}</td>
-                        <td><strong>${b.event_title}</strong></td>
-                        <td>${b.tickets_qty}</td>
-                        <td>RM ${b.total_price}</td>
-                        <td><span class="badge ${b.booking_status === 'Confirmed' ? 'bg-success' : 'bg-danger'}">${b.booking_status}</span></td>
-                        <td><a href="ticket.html?id=${b.id}" class="btn btn-sm btn-info text-white">Lihat Kod QR</a></td>
-                        <td>
-                            ${b.booking_status === 'Confirmed' ? `<button onclick="cancelBooking(${b.id})" class="btn btn-sm btn-outline-danger">Batal</button>` : '-'}
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        async function cancelBooking(id) {
-            if (confirm('Batal tempahan ini?')) {
-                await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
-                loadMyBookings();
-            }
-        }
-
-        loadMyBookings();
-    </script>
+    <script src="js/app.js"></script>
 </body>
 </html>
