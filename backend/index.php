@@ -9,12 +9,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+// Dapatkan path URL dan bersihkan
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uriSegments = explode('/', trim($uri, '/'));
 
-$backendIndex = array_search('backend', $uriSegments);
-$resource = ($backendIndex !== false && isset($uriSegments[$backendIndex + 1])) ? $uriSegments[$backendIndex + 1] : '';
-$id = ($backendIndex !== false && isset($uriSegments[$backendIndex + 2])) ? $uriSegments[$backendIndex + 2] : null;
+// Cari segmen resource (users, venues, events, bookings)
+$resource = '';
+$id = null;
+
+foreach ($uriSegments as $index => $segment) {
+    if (in_array($segment, ['users', 'venues', 'events', 'bookings'])) {
+        $resource = $segment;
+        if (isset($uriSegments[$index + 1]) && is_numeric($uriSegments[$index + 1])) {
+            $id = $uriSegments[$index + 1];
+        }
+        break;
+    }
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -69,6 +80,6 @@ switch ($resource) {
 
     default:
         http_response_code(404);
-        echo json_encode(["status" => "error", "message" => "Endpoint not found"]);
+        echo json_encode(["status" => "error", "message" => "Endpoint not found: " . $uri]);
         break;
 }
