@@ -9,11 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Dapatkan path URL dan bersihkan
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uriSegments = explode('/', trim($uri, '/'));
 
-// Cari segmen resource (users, venues, events, bookings)
 $resource = '';
 $id = null;
 

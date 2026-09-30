@@ -1,6 +1,5 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-// Kendalikan Log Masuk Utama & Pengahlian mengikut Role
 const mainLoginForm = document.getElementById('mainLoginForm');
 if (mainLoginForm) {
     mainLoginForm.addEventListener('submit', async (e) => {
@@ -19,14 +18,12 @@ if (mainLoginForm) {
             const json = await res.json();
 
             if (res.ok && json.status === 'success') {
-                // Simpan data maklumat pengguna dan token dalam LocalStorage
                 localStorage.setItem('user', JSON.stringify(json.user));
                 localStorage.setItem('token', json.token);
 
                 const role = json.user.role;
                 alert(`Log masuk berjaya! Selamat datang ${json.user.name} (${role})`);
 
-                // Penghaluan Automatik Mengikut Role
                 if (role === 'Admin') {
                     window.location.href = 'frontend/admin/index.html';
                 } else if (role === 'Organiser') {
@@ -44,7 +41,6 @@ if (mainLoginForm) {
     });
 }
 
-// Kendalikan Pendaftaran Pelanggan Baharu
 const mainRegisterForm = document.getElementById('mainRegisterForm');
 if (mainRegisterForm) {
     mainRegisterForm.addEventListener('submit', async (e) => {

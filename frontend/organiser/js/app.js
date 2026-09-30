@@ -1,88 +1,121 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-async function loadOrganiserEvents() {
-    const tbody = document.getElementById('organiserEvents');
-    if (!tbody) return;
+// 1. Memuatkan Dropdown Venue dari Admin
+async function loadVenueOptions() {
+    const venueSelect = document.getElementById('eVenue');
+    if (!venueSelect) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/venues`);
+        const json = await res.json();
+
+        if (json.status === 'success' && Array.isArray(json.data)) {
+            venueSelect.innerHTML = '<option value="">-- Pilih Venue --</option>';
+            json.data.forEach(v => {
+                venueSelect.innerHTML += `<option value="${v.id}">${v.name} (${v.location})</option>`;
+            });
+        } else {
+            venueSelect.innerHTML = '<option value="">Tiada venue didapati dari Admin</option>';
+        }
+    } catch (err) {
+        console.error('Error loading venue options:', err);
+    }
+}
+
+// 2. Memuatkan Senarai Acara
+async function loadEvents() {
+    const eventsTableBody = document.getElementById('eventsTableBody');
+    if (!eventsTableBody) return;
 
     try {
         const res = await fetch(`${API_BASE}/events`);
         const json = await res.json();
-        tbody.innerHTML = '';
+        eventsTableBody.innerHTML = '';
 
-        if (json.status === 'success') {
+        if (json.status === 'success' && Array.isArray(json.data)) {
+            if (json.data.length === 0) {
+                eventsTableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tiada acara diterbitkan lagi.</td></tr>';
+                return;
+            }
+
             json.data.forEach(e => {
-                tbody.innerHTML += `
+                eventsTableBody.innerHTML += `
                     <tr>
-                        <td>${e.id}</td>
+                        <td>#${e.id}</td>
                         <td><strong>${e.title}</strong></td>
                         <td>${e.event_date}</td>
                         <td>${e.venue_name}</td>
-                        <td>RM ${e.ticket_price}</td>
-                        <td><span class="badge bg-warning text-dark">${e.available_tickets}</span></td>
-                        <td><button onclick="deleteEvent(${e.id})" class="btn btn-sm btn-outline-danger">Padam</button></td>
+                        <td><span class="badge bg-info text-dark">${e.available_tickets} / ${e.total_tickets}</span></td>
+                        <td>RM ${parseFloat(e.ticket_price).toFixed(2)}</td>
+                        <td>
+                            <button onclick="deleteEvent(${e.id})" class="btn btn-danger btn-sm">Padam</button>
+                        </td>
                     </tr>
                 `;
             });
         }
     } catch (err) {
-        console.error('Error loading organiser events:', err);
+        console.error('Error loading events:', err);
     }
 }
 
-async function loadVenueDropdown() {
-    const select = document.getElementById('venue_id');
-    if (!select) return;
-
-    try {
-        const res = await fetch(`${API_BASE}/venues`);
-        const json = await res.json();
-        select.innerHTML = '<option value="">-- Pilih Venue --</option>';
-
-        if (json.status === 'success') {
-            json.data.forEach(v => {
-                select.innerHTML += `<option value="${v.id}">${v.name} (${v.location})</option>`;
-            });
-        }
-    } catch (err) {
-        console.error('Error loading dropdown venues:', err);
-    }
-}
-
-const createEventForm = document.getElementById('createEventForm');
-if (createEventForm) {
-    createEventForm.addEventListener('submit', async (e) => {
+// 3. Borang Tambah Acara
+const addEventForm = document.getElementById('addEventForm');
+if (addEventForm) {
+    addEventForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
         const body = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('desc').value,
-            event_date: document.getElementById('event_date').value,
-            venue_id: document.getElementById('venue_id').value,
-            ticket_price: document.getElementById('ticket_price').value,
-            available_tickets: document.getElementById('available_tickets').value,
-            organiser_id: 2
+            title: document.getElementById('eTitle').value.trim(),
+            description: document.getElementById('eDesc').value.trim(),
+            event_date: document.getElementById('eDate').value,
+            venue_id: document.getElementById('eVenue').value,
+            total_tickets: parseInt(document.getElementById('eTickets').value),
+            ticket_price: parseFloat(document.getElementById('ePrice').value)
         };
 
-        const res = await fetch(`${API_BASE}/events`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
+        try {
+            const res = await fetch(`${API_BASE}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
 
-        if (res.ok) {
-            alert('Acara berjaya dicipta!');
-            window.location.href = 'index.html';
+            const json = await res.json();
+
+            if (res.ok && json.status === 'success') {
+                alert('Acara berjaya diterbitkan!');
+                addEventForm.reset();
+                loadEvents();
+            } else {
+                alert(json.message || 'Gagal menerbitkan acara.');
+            }
+        } catch (err) {
+            console.error('Error adding event:', err);
         }
     });
 }
 
+// 4. Padam Acara
 async function deleteEvent(id) {
-    if (confirm('Padam acara ini?')) {
-        await fetch(`${API_BASE}/events/${id}`, { method: 'DELETE' });
-        loadOrganiserEvents();
+    if (confirm(`Adakah anda pasti ingin memadam acara ID #${id}?`)) {
+        try {
+            const res = await fetch(`${API_BASE}/events/${id}`, { method: 'DELETE' });
+            const json = await res.json();
+
+            if (res.ok && json.status === 'success') {
+                alert('Acara berjaya dipadam.');
+                loadEvents();
+            } else {
+                alert(json.message || 'Gagal memadam acara.');
+            }
+        } catch (err) {
+            console.error('Error deleting event:', err);
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadOrganiserEvents();
-    loadVenueDropdown();
+    loadVenueOptions();
+    loadEvents();
 });

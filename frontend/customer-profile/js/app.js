@@ -1,6 +1,5 @@
 const API_BASE = 'http://localhost/swc-web-api-project/backend/index.php';
 
-// Memuatkan senarai tempahan pelanggan
 async function loadMyBookings() {
     const tbody = document.getElementById('myBookings');
     if (!tbody) return;
@@ -32,7 +31,6 @@ async function loadMyBookings() {
     }
 }
 
-// Membatalkan tempahan
 async function cancelBooking(id) {
     if (confirm('Batal tempahan ini?')) {
         await fetch(`${API_BASE}/bookings/${id}`, { method: 'PUT' });
@@ -40,7 +38,6 @@ async function cancelBooking(id) {
     }
 }
 
-// Memuatkan maklumat tiket & Kod QR daripada API
 async function loadTicket() {
     const ticketInfo = document.getElementById('ticketInfo');
     if (!ticketInfo) return;
